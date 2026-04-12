@@ -1,0 +1,16 @@
+# Persona configuration  - defines your writing voice for LinkedIn posts.
+# This is a USER LAYER file  - the system will never auto-overwrite it.
+
+# Tone presets: professional | casual | educational | custom
+tone: professional
+
+# Free-text style instructions for Claude.
+# Examples: "short sentences, never use jargon, always end with a question"
+style_notes: ""
+
+# Directory containing writing samples (.txt or .md files).
+# Claude reads these at generation time to match your voice.
+samples_dir: samples/
+
+# Set to false to temporarily disable persona (uses generic tone).
+active: true

@@ -1,0 +1,22 @@
+# Scheduling and workflow configuration.
+# This is a USER LAYER file  - the system will never auto-overwrite it.
+
+# Posting frequency: daily | mon_wed_fri | weekly
+frequency: daily
+
+# Time to post (24h format). Used by cron and scheduler.
+post_time: "09:00"
+
+# Timezone for scheduling.
+timezone: "America/New_York"
+
+# Scheduler type: claude | cron | apscheduler
+# - claude: Uses Claude Code scheduled tasks (cloud, no local machine needed)
+# - cron: Local crontab entry (documented in SETUP.md)
+# - apscheduler: Long-running Python process
+scheduler_type: claude
+
+# Global review flag. When true, generated posts go to draft status
+# and require /linkedin review before publishing.
+# Can be overridden per-post in topics.yaml calendar entries.
+review_required: true

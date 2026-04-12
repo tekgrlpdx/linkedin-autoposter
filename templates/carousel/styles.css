@@ -1,0 +1,110 @@
+/* LinkedIn Carousel Slide Styles
+   1080x1080px square format  - LinkedIn's carousel standard.
+   Customize colors, fonts, and layout to match your brand.
+*/
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 1080px;
+  height: 1080px;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.slide {
+  width: 1080px;
+  height: 1080px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slide__container {
+  width: 100%;
+  height: 100%;
+  padding: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.slide__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.slide__title {
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 32px;
+}
+
+.slide__body {
+  font-size: 32px;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.slide__footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.slide__number {
+  font-size: 20px;
+  opacity: 0.5;
+}
+
+/* --- Cover slide --- */
+.slide--cover {
+  background: linear-gradient(135deg, #0a66c2 0%, #004182 100%);
+  color: #ffffff;
+}
+
+.slide--cover .slide__title {
+  font-size: 64px;
+}
+
+.slide--cover .slide__body {
+  font-size: 28px;
+  opacity: 0.85;
+}
+
+/* --- Content slides --- */
+.slide--content {
+  background: #ffffff;
+  color: #191919;
+}
+
+.slide--content .slide__title {
+  color: #0a66c2;
+}
+
+/* --- CTA slide --- */
+.slide--cta {
+  background: linear-gradient(135deg, #004182 0%, #0a66c2 100%);
+  color: #ffffff;
+  text-align: center;
+}
+
+.slide--cta .slide__content {
+  align-items: center;
+}
+
+.slide--cta .slide__title {
+  font-size: 56px;
+}
+
+.slide--cta .slide__body {
+  font-size: 28px;
+  opacity: 0.85;
+}

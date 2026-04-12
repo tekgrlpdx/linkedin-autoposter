@@ -1,0 +1,15 @@
+# Content calendar and topic pool.
+# This is a USER LAYER file  - the system will never auto-overwrite it.
+
+# Dated calendar entries  - posts scheduled for specific dates.
+# Each entry can override the global review_required and format settings.
+calendar: []
+  # - date: "2026-04-14"
+  #   topic: "5 lessons from building a startup"
+  #   format: carousel        # text | single_image | carousel | quote_card
+  #   review_required: true   # overrides global setting in schedule.yaml
+
+# Topic pool  - drawn from randomly when no calendar entry matches today.
+pool: []
+  # - "The future of remote work"
+  # - "What most people get wrong about productivity"
