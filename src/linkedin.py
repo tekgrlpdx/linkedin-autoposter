@@ -122,6 +122,32 @@ def get_valid_token() -> str:
     return token
 
 
+def check_token_expiry() -> dict:
+    """Check how long until the LinkedIn token expires.
+
+    Returns a dict with:
+      - expires_at: human-readable expiry date
+      - days_remaining: int
+      - warning: bool (True if <= 7 days remaining)
+    """
+    from datetime import datetime
+
+    expiry_str = _get_env("LINKEDIN_TOKEN_EXPIRY")
+    if not expiry_str:
+        return {"expires_at": "unknown", "days_remaining": -1, "warning": True}
+
+    expiry_ts = int(expiry_str)
+    now = int(time.time())
+    days = (expiry_ts - now) // 86400
+    expires_at = datetime.fromtimestamp(expiry_ts).strftime("%B %d, %Y")
+
+    return {
+        "expires_at": expires_at,
+        "days_remaining": days,
+        "warning": days <= 7,
+    }
+
+
 def _headers() -> dict:
     return {
         "Authorization": f"Bearer {get_valid_token()}",
@@ -155,8 +181,10 @@ def get_user_urn() -> str:
     return f"urn:li:person:{person_id}"
 
 
-def upload_image(image_path: str) -> str:
+def upload_image(image_source: str) -> str:
     """Upload an image to LinkedIn and return the asset URN.
+
+    Accepts either a local file path or an HTTP(S) URL.
 
     LinkedIn requires a two-step upload:
     1. Register the upload and get an upload URL
@@ -191,9 +219,14 @@ def upload_image(image_path: str) -> str:
         "com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"
     ]["uploadUrl"]
 
-    # Step 2: Upload image binary
-    with open(image_path, "rb") as f:
-        image_data = f.read()
+    # Step 2: Get image binary (from URL or local file)
+    if image_source.startswith(("http://", "https://")):
+        dl_resp = requests.get(image_source, timeout=30)
+        dl_resp.raise_for_status()
+        image_data = dl_resp.content
+    else:
+        with open(image_source, "rb") as f:
+            image_data = f.read()
 
     resp = requests.put(
         upload_url,

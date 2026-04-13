@@ -14,6 +14,10 @@ Review, edit, approve, or reject drafted posts before they publish. This mode is
    - If no drafts found, inform user and suggest running `/linkedin generate` first.
 
 3. **Review each draft:**
+   - For each post, generate and open an HTML preview:
+     ```bash
+     python .claude/skills/linkedin/scripts/preview_post.py <post_id> --open
+     ```
    - Display one post at a time:
      - **Scheduled date**
      - **Topic** (source)

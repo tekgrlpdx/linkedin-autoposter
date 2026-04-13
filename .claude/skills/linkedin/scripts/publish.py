@@ -37,14 +37,18 @@ def publish(post_id: str) -> dict:
         update_post(post_id, status="failed", error=str(e))
         return {"success": False, "error": f"Token error: {e}"}
 
-    # Upload image if attached
+    # Upload image if attached (supports local paths and URLs)
     image_asset = ""
-    if post.get("image_url") and Path(post["image_url"]).exists():
-        try:
-            image_asset = upload_image(post["image_url"])
-        except Exception as e:
-            update_post(post_id, status="failed", error=f"Image upload failed: {e}")
-            return {"success": False, "error": f"Image upload failed: {e}"}
+    image_url = post.get("image_url", "").strip()
+    if image_url:
+        is_url = image_url.startswith(("http://", "https://"))
+        is_local = not is_url and Path(image_url).exists()
+        if is_url or is_local:
+            try:
+                image_asset = upload_image(image_url)
+            except Exception as e:
+                update_post(post_id, status="failed", error=f"Image upload failed: {e}")
+                return {"success": False, "error": f"Image upload failed: {e}"}
 
     # Publish
     try:

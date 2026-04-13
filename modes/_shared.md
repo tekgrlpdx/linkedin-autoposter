@@ -57,6 +57,7 @@ pool:
 4. **Use the scripts for side effects.** OAuth, publishing, and scraping use the Python scripts in `.claude/skills/linkedin/scripts/`. Don't reimplement their logic inline.
 5. **Image workflow:** Stock photos come from Unsplash/Pexels APIs → uploaded to Canva → brand template applied → exported. For carousels without Canva, use the HTML/CSS templates in `templates/carousel/`.
 6. **Token management:** Before any LinkedIn API call, the scripts handle token refresh automatically. If tokens are missing or invalid, direct the user to run `/linkedin setup`.
+7. **Token expiry check:** At the start of every mode, check `LINKEDIN_TOKEN_EXPIRY` in `.env`. If the token expires within 7 days, warn the user and suggest running `/linkedin setup` to refresh. Display the expiry date. This check runs silently if the token has more than 7 days remaining.
 
 ## Available Scripts
 
@@ -65,6 +66,7 @@ pool:
 | `setup_auth.py` | OAuth 2.0 flow | `python .claude/skills/linkedin/scripts/setup_auth.py` |
 | `publish.py` | Publish a post | `python .claude/skills/linkedin/scripts/publish.py <post_id>` or `--next` |
 | `scrape_posts.py` | Fetch user's posts | `python .claude/skills/linkedin/scripts/scrape_posts.py [--count 20]` |
+| `preview_post.py` | Generate HTML preview | `python .claude/skills/linkedin/scripts/preview_post.py <post_id> [--open]` |
 
 ## Available Python Modules
 
