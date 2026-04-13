@@ -1,0 +1,18 @@
+# Content calendar and topic pool.
+# This is a USER LAYER file - the system will never auto-overwrite it.
+#
+# Run /linkedin calendar to configure this interactively.
+# Copy this file to topics.yaml to get started manually.
+
+# Dated calendar entries - posts scheduled for specific dates.
+# Each entry can override the global review_required and format settings.
+calendar:
+  - date: "2026-01-07"
+    topic: "Example topic: Your take on a recent industry trend"
+    format: text          # text | single_image | carousel | quote_card
+    review_required: true # optional, overrides global setting
+
+# Topic pool - drawn from randomly when no calendar entry matches today.
+pool:
+  - "Example pool topic: Leadership lessons from building distributed teams"
+  - "Example pool topic: What I wish I knew earlier in my career"

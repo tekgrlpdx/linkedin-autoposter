@@ -21,6 +21,7 @@ AI-powered LinkedIn content management built as a Claude Code skill. Research, p
 | Unsplash API key | Free | From [unsplash.com/developers](https://unsplash.com/developers) |
 | Python 3.10–3.13 | Free | 3.14 has compatibility issues with some dependencies |
 | Claude Code | - | The tool you're already using |
+| Claude in Chrome extension | Free | Required for analytics and importing your existing posts as writing samples. Install from the Chrome Web Store. |
 | Canva Pro (optional) | $15/month | Only needed for branded image creation |
 | Pexels API key (optional) | Free | Fallback photo source |
 
@@ -55,7 +56,7 @@ Run these inside Claude Code:
 | `/linkedin repurpose` | Turn a blog post or article into multiple LinkedIn posts |
 | `/linkedin review` | Review drafts  -  approve, edit, or regenerate before publishing |
 | `/linkedin post` | Publish  -  post to LinkedIn now, or let the scheduler handle it |
-| `/linkedin analytics` | See what's working  -  analyzes engagement and suggests improvements |
+| `/linkedin analytics` | See what's working  -  scrapes LinkedIn creator analytics via Chrome and suggests improvements |
 
 ## Typical Workflow
 
@@ -136,6 +137,12 @@ Yes. Go to [LinkedIn Settings → Permitted Services](https://www.linkedin.com/p
 
 **What if my tokens expire?**
 Access tokens last 60 days. The system refreshes them automatically. If refresh fails, re-run `/linkedin setup`.
+
+**Why does analytics and persona scraping use Chrome instead of the LinkedIn API?**
+LinkedIn's "Share on LinkedIn" developer product only grants write access (`w_member_social`). Reading your posts or engagement data requires the `r_member_social` scope, which is only available through LinkedIn's Community Management API (requires a formal application and approval). Rather than blocking on that, this tool uses the Claude in Chrome extension to scrape your LinkedIn analytics page and activity feed directly from your logged-in browser session.
+
+**Can I import my existing LinkedIn posts as writing style samples?**
+Yes. Run `/linkedin persona` and choose option **d) Scrape LinkedIn posts**. The system will open your LinkedIn activity page in Chrome and extract your post text automatically. No additional API access needed.
 
 ## Documentation
 

@@ -37,5 +37,22 @@ docs/ARCHITECTURE.md
 docs/LINKEDIN_API_REFERENCE.md
 CONSIDERATIONS.md
 
+# User config (personal content, different for every user)
+config/persona.yaml
+config/topics.yaml
+config/schedule.yaml
+
+# Writing samples (personal content)
+samples/*.md
+samples/*.txt
+
 # Exported images/PDFs (local working copies)
 output/
+
+# Logs
+*.log
+logs/
+
+# Temp files
+*.tmp
+tmp/

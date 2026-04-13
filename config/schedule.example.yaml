@@ -1,8 +1,11 @@
 # Scheduling and workflow configuration.
-# This is a USER LAYER file  - the system will never auto-overwrite it.
+# This is a USER LAYER file - the system will never auto-overwrite it.
+#
+# Run /linkedin calendar to configure this interactively.
+# Copy this file to schedule.yaml to get started manually.
 
-# Posting frequency: daily | mon_wed_fri | weekly
-frequency: daily
+# Posting frequency: daily | mon_wed_fri | tue_thu | weekly
+frequency: tue_thu
 
 # Time to post (24h format). Used by cron and scheduler.
 post_time: "09:00"

@@ -18,16 +18,17 @@ AUTHORIZE_URL = "https://www.linkedin.com/oauth/v2/authorization"
 TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
 API_BASE = "https://api.linkedin.com/v2"
 REDIRECT_URI = "http://localhost:8080/callback"
-SCOPES = "w_member_social r_member_social"
+SCOPES = "w_member_social openid profile"
 
 
 def _load_env():
-    load_dotenv(ENV_PATH)
+    load_dotenv(ENV_PATH, override=True)
 
 
 def _get_env(key: str) -> str:
     _load_env()
-    return os.getenv(key, "")
+    value = os.getenv(key, "")
+    return value.strip("'\"") if value else ""
 
 
 def _set_env(key: str, value: str):
@@ -131,6 +132,16 @@ def _headers() -> dict:
 
 def get_profile() -> dict:
     """Fetch the authenticated user's LinkedIn profile."""
+    # Try OpenID userinfo endpoint first (works with openid+profile scopes)
+    resp = requests.get("https://api.linkedin.com/v2/userinfo", headers=_headers())
+    if resp.status_code == 200:
+        data = resp.json()
+        return {
+            "localizedFirstName": data.get("given_name", ""),
+            "localizedLastName": data.get("family_name", ""),
+            "sub": data.get("sub", ""),
+        }
+    # Fall back to legacy /me endpoint
     resp = requests.get(f"{API_BASE}/me", headers=_headers())
     resp.raise_for_status()
     return resp.json()
@@ -139,7 +150,9 @@ def get_profile() -> dict:
 def get_user_urn() -> str:
     """Get the authenticated user's URN (e.g. urn:li:person:abc123)."""
     profile = get_profile()
-    return f"urn:li:person:{profile['id']}"
+    # OpenID userinfo returns 'sub', legacy /me returns 'id'
+    person_id = profile.get("sub", profile.get("id", ""))
+    return f"urn:li:person:{person_id}"
 
 
 def upload_image(image_path: str) -> str:
@@ -241,6 +254,23 @@ def publish_post(text: str, image_asset: str = "") -> dict:
 def get_user_posts(count: int = 20) -> list[dict]:
     """Fetch the user's recent LinkedIn posts for persona scraping."""
     user_urn = get_user_urn()
+
+    # Try Posts API (current)
+    resp = requests.get(
+        f"{API_BASE}/posts",
+        headers=_headers(),
+        params={
+            "author": user_urn,
+            "q": "author",
+            "count": count,
+            "sortBy": "LAST_MODIFIED",
+        },
+    )
+    if resp.status_code == 200:
+        data = resp.json()
+        return data.get("elements", [])
+
+    # Fall back to legacy ugcPosts API
     resp = requests.get(
         f"{API_BASE}/ugcPosts",
         headers=_headers(),

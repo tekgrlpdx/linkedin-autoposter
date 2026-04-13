@@ -31,10 +31,27 @@ Define the writing voice Claude uses when generating LinkedIn posts.
 
    **d) Scrape LinkedIn posts:**
    - Ask user if they want to import their existing LinkedIn posts as style reference.
-   - If yes, run:
+   - If yes, try the API first:
      ```bash
      python .claude/skills/linkedin/scripts/scrape_posts.py --count 20
      ```
+   - If the API fails (common when using "Share on LinkedIn" product, which lacks read scope), fall back to browser scraping:
+     1. Open Chrome to `https://www.linkedin.com/in/me/recent-activity/all/` using Chrome MCP.
+     2. Scroll to load posts (scroll to bottom, wait, repeat 3-5 times).
+     3. Click all "see more" buttons to expand truncated posts.
+     4. Extract text via JavaScript:
+        ```javascript
+        const posts = [];
+        document.querySelectorAll('.feed-shared-inline-show-more-text').forEach(el => {
+          const text = el.innerText.trim();
+          if (text.length > 20) posts.push(text);
+        });
+        posts.join('\n---\n');
+        ```
+     5. Save the extracted text to a temp file and run:
+        ```bash
+        python .claude/skills/linkedin/scripts/scrape_posts.py --from-file /tmp/linkedin_scraped.txt
+        ```
    - Confirm the output file `samples/linkedin_posts.txt` was created.
 
 3. **Build style summary:**

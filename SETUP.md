@@ -7,7 +7,7 @@ This guide walks you through connecting the LinkedIn Auto-Poster to your LinkedI
 **What you'll set up:**
 1. A LinkedIn Company Page (if you don't have one)
 2. A LinkedIn "developer app" (this is how LinkedIn lets outside tools post on your behalf)
-3. API keys for Claude (generates your posts) and Unsplash (sources photos)
+3. A Claude API key (generates your posts) and optionally Unsplash/Pexels keys (sources photos for image posts)
 4. A one-time login to connect everything
 
 ---
@@ -19,6 +19,7 @@ Make sure you have:
 - [ ] A LinkedIn account (the personal profile you want to post from)
 - [ ] Python 3.10–3.13 installed on your machine ([python.org/downloads](https://www.python.org/downloads/))
 - [ ] Claude Code installed
+- [ ] The **Claude in Chrome** browser extension installed (required for analytics and importing your LinkedIn posts as writing samples)
 - [ ] A Canva Pro account (optional  -  only needed for branded image creation)
 
 ### What's a "developer app"?
@@ -190,8 +191,6 @@ LINKEDIN_CLIENT_SECRET=paste_your_client_secret_here
 
 ## Step 8: Get Your Other API Keys
 
-You need two more keys. Both are free.
-
 ### Claude API Key (required  -  generates your post text)
 
 1. Go to [platform.claude.com](https://platform.claude.com)
@@ -203,19 +202,22 @@ You need two more keys. Both are free.
    ANTHROPIC_API_KEY=paste_your_key_here
    ```
 
-### Unsplash API Key (required  -  sources stock photos)
+### Unsplash API Key (optional  -  needed for `/linkedin create-image`)
+
+Only required if you want to source stock photos for your posts. Free, instant approval.
 
 1. Go to [unsplash.com/developers](https://unsplash.com/developers)
-2. Click **Register as a developer** (or log in)
-3. Click **New Application**
-4. Accept the terms, give your app a name
-5. Copy the **Access Key** (not the Secret Key)
-6. Paste it in your `.env` file:
+2. Click **Your apps** (top right, once logged in)
+3. Click **New Application**, accept the terms, give your app a name
+4. Scroll down to **Keys** and copy the **Access Key**
+5. Paste it in your `.env` file:
    ```
    UNSPLASH_ACCESS_KEY=paste_your_key_here
    ```
 
-### Pexels API Key (optional  -  fallback photo source)
+### Pexels API Key (optional  -  fallback photo source for `/linkedin create-image`)
+
+Used as a fallback if Unsplash returns no results. Free, instant approval.
 
 1. Go to [pexels.com/api](https://www.pexels.com/api/)
 2. Sign up and request an API key
@@ -223,6 +225,8 @@ You need two more keys. Both are free.
    ```
    PEXELS_API_KEY=paste_your_key_here
    ```
+
+> **Note:** If you skip both image API keys, text-only posts work fine. You can always add them later when you're ready to use `/linkedin create-image`.
 
 ---
 
@@ -266,7 +270,7 @@ This lets you define how Claude writes your posts. You can:
 - Pick a tone (professional, casual, educational)
 - Add custom style instructions ("short sentences", "never use jargon")
 - Drop writing samples in the `samples/` folder
-- Import your existing LinkedIn posts as a style reference
+- Import your existing LinkedIn posts as a style reference (uses Chrome extension to scrape your activity feed  -  no extra API access needed)
 
 ---
 
@@ -334,7 +338,10 @@ If you prefer a local cron job (requires your machine to be on at the scheduled 
 | Authorization failed | Check Client ID + Secret match your app. Check redirect URL was added in Step 6. |
 | Token expired | The system auto-refreshes tokens. If that fails, re-run `/linkedin setup` |
 | "I don't see my Company Page" | Make sure you're logged into the same LinkedIn account that admins the page |
-| Unsplash returns no results | Check `UNSPLASH_ACCESS_KEY` is set in `.env` |
+| Unsplash returns no results | Check `UNSPLASH_ACCESS_KEY` is set in `.env`. If unset, Pexels is tried as fallback. |
+| Pexels returns no results | Check `PEXELS_API_KEY` is set in `.env` |
+| Analytics shows no data | Make sure the Claude in Chrome extension is installed and you're logged into LinkedIn in that browser |
+| Can't import LinkedIn posts as samples | Same as above  -  requires Claude in Chrome extension and an active LinkedIn session |
 | Python version error | Use Python 3.10–3.13. Python 3.14 has compatibility issues. |
 
 ---
