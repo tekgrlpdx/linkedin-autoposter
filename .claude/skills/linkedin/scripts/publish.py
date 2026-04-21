@@ -18,11 +18,23 @@ project_root = Path(__file__).resolve().parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.history import get_post, get_next_scheduled, update_post
-from src.linkedin import publish_post, upload_image, get_valid_token
+from src.linkedin import (
+    publish_post,
+    publish_document_post,
+    upload_image,
+    upload_document,
+    get_valid_token,
+)
 
 
 def publish(post_id: str) -> dict:
-    """Publish a post by ID. Returns the result dict."""
+    """Publish a post by ID. Returns the result dict.
+
+    Routes by format:
+      - carousel: uploads PDF as a document, posts via /rest/posts
+      - single_image / quote_card: uploads image, posts via /v2/ugcPosts
+      - text: posts text-only via /v2/ugcPosts
+    """
     post = get_post(post_id)
     if not post:
         return {"success": False, "error": f"Post {post_id} not found"}
@@ -37,9 +49,42 @@ def publish(post_id: str) -> dict:
         update_post(post_id, status="failed", error=str(e))
         return {"success": False, "error": f"Token error: {e}"}
 
-    # Upload image if attached (supports local paths and URLs)
-    image_asset = ""
+    fmt = post.get("format", "text")
     image_url = post.get("image_url", "").strip()
+    text = post["generated_content"]
+    now = datetime.now(timezone.utc).isoformat()
+
+    # === Carousel flow: PDF document upload ===
+    if fmt == "carousel" and image_url:
+        is_url = image_url.startswith(("http://", "https://"))
+        is_local = not is_url and Path(image_url).exists()
+        if not (is_url or is_local):
+            update_post(post_id, status="failed", error=f"Carousel PDF not found: {image_url}")
+            return {"success": False, "error": f"Carousel PDF not found: {image_url}"}
+
+        try:
+            doc_urn = upload_document(image_url, title=post.get("topic", "Document")[:100])
+        except Exception as e:
+            update_post(post_id, status="failed", error=f"Document upload failed: {e}")
+            return {"success": False, "error": f"Document upload failed: {e}"}
+
+        try:
+            result = publish_document_post(text, doc_urn, title=post.get("topic", "Document")[:100])
+            linkedin_id = result.get("id", "")
+            update_post(
+                post_id,
+                status="published",
+                linkedin_post_id=linkedin_id,
+                published_at=now,
+                error="",
+            )
+            return {"success": True, "linkedin_post_id": linkedin_id}
+        except Exception as e:
+            update_post(post_id, status="failed", error=str(e))
+            return {"success": False, "error": str(e)}
+
+    # === Image/text flow: ugcPosts API ===
+    image_asset = ""
     if image_url:
         is_url = image_url.startswith(("http://", "https://"))
         is_local = not is_url and Path(image_url).exists()
@@ -50,11 +95,9 @@ def publish(post_id: str) -> dict:
                 update_post(post_id, status="failed", error=f"Image upload failed: {e}")
                 return {"success": False, "error": f"Image upload failed: {e}"}
 
-    # Publish
     try:
-        result = publish_post(post["generated_content"], image_asset)
+        result = publish_post(text, image_asset)
         linkedin_id = result.get("id", "")
-        now = datetime.now(timezone.utc).isoformat()
         update_post(
             post_id,
             status="published",

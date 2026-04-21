@@ -17,6 +17,8 @@ ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
 AUTHORIZE_URL = "https://www.linkedin.com/oauth/v2/authorization"
 TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
 API_BASE = "https://api.linkedin.com/v2"
+REST_BASE = "https://api.linkedin.com/rest"
+LINKEDIN_API_VERSION = "202604"  # YYYYMM format required by /rest/ endpoints
 REDIRECT_URI = "http://localhost:8080/callback"
 SCOPES = "w_member_social openid profile"
 
@@ -338,3 +340,93 @@ def get_post_stats(post_urns: list[str]) -> list[dict]:
         if resp.status_code == 200:
             stats.append(resp.json())
     return stats
+
+
+def _rest_headers() -> dict:
+    """Headers for /rest/ endpoints (Posts API, Documents API)."""
+    return {
+        "Authorization": f"Bearer {get_valid_token()}",
+        "Content-Type": "application/json",
+        "X-Restli-Protocol-Version": "2.0.0",
+        "LinkedIn-Version": LINKEDIN_API_VERSION,
+    }
+
+
+def upload_document(document_path: str, title: str = "Document") -> str:
+    """Upload a PDF/DOC/PPT to LinkedIn and return the document URN.
+
+    Used for posting carousels (multi-page PDFs render as swipeable carousels).
+    Requires w_member_social scope. Max 100MB / 300 pages.
+    Supported: PDF, PPT, PPTX, DOC, DOCX.
+
+    Returns:
+        Document URN string (e.g. urn:li:document:abc123)
+    """
+    user_urn = get_user_urn()
+    token = get_valid_token()
+
+    # Step 1: Initialize upload
+    init_body = {"initializeUploadRequest": {"owner": user_urn}}
+    resp = requests.post(
+        f"{REST_BASE}/documents?action=initializeUpload",
+        headers=_rest_headers(),
+        json=init_body,
+    )
+    resp.raise_for_status()
+    init_data = resp.json()["value"]
+    upload_url = init_data["uploadUrl"]
+    document_urn = init_data["document"]
+
+    # Step 2: Upload the document binary
+    if document_path.startswith(("http://", "https://")):
+        dl_resp = requests.get(document_path, timeout=60)
+        dl_resp.raise_for_status()
+        doc_data = dl_resp.content
+    else:
+        with open(document_path, "rb") as f:
+            doc_data = f.read()
+
+    upload_resp = requests.put(
+        upload_url,
+        headers={"Authorization": f"Bearer {token}"},
+        data=doc_data,
+    )
+    upload_resp.raise_for_status()
+
+    return document_urn
+
+
+def publish_document_post(text: str, document_urn: str, title: str = "Document") -> dict:
+    """Publish a post containing a document (carousel) to LinkedIn.
+
+    Uses the newer /rest/posts API which supports document content.
+    Returns the LinkedIn API response including the post ID.
+    """
+    user_urn = get_user_urn()
+
+    body = {
+        "author": user_urn,
+        "commentary": text,
+        "visibility": "PUBLIC",
+        "distribution": {
+            "feedDistribution": "MAIN_FEED",
+            "targetEntities": [],
+            "thirdPartyDistributionChannels": [],
+        },
+        "content": {
+            "media": {
+                "title": title,
+                "id": document_urn,
+            }
+        },
+        "lifecycleState": "PUBLISHED",
+        "isReshareDisabledByAuthor": False,
+    }
+
+    resp = requests.post(
+        f"{REST_BASE}/posts",
+        headers=_rest_headers(),
+        json=body,
+    )
+    resp.raise_for_status()
+    return {"id": resp.headers.get("x-restli-id", ""), "status_code": resp.status_code}
